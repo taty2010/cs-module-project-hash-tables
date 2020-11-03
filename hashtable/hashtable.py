@@ -22,8 +22,8 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-        self.capacity = capacity
-        self.storage = [None] * capacity
+        self.capacity = max(capacity, MIN_CAPACITY)
+        self.storage = [None] * self.capacity
         self.item_count = 0
     def get_num_slots(self):
         """
@@ -45,8 +45,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
-
+        return self.item_count / self.capacity
     def fnv1(self, key):
         """
         FNV-1 Hash, 64-bit
@@ -55,6 +54,15 @@ class HashTable:
         """
 
         # Your code here
+
+        prime_value = 14695981039346656037
+        hashed = prime_value
+        bytes_to_hash = key.encode()
+
+        for byte in bytes_to_hash:
+            hashed = hashed * prime_value
+            hashed = hashed ^ byte
+        return hashed
 
 
     def djb2(self, key):
@@ -85,10 +93,24 @@ class HashTable:
         Hash collisions should be handled with Linked List Chaining.
         Implement this.
         """
-        # Your code here
+        ## Check the current entry
+        ## Make sure the keys are different
+        # # Your code here
         index = self.hash_index(key)
-        self.storage[index] = value
-        return
+        # self.storage[index] = value
+        # return
+        curr = self.storage[index] ## current
+
+        while curr != None and curr.key != key:
+            curr = curr.next
+        if curr != None:
+            print('warning, collision!')
+        else:
+            new = HashTableEntry(key, value)
+            new.next = self.storage[index]
+            self.storage[index] = new.next
+            self.item_count += 1 
+
 
     def delete(self, key):
         """
@@ -100,7 +122,11 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        self.storage[index] = None
+        if self.storage[index] == None:
+            print('No key!')
+        else:
+            self.storage[index] = None
+            self.item_count -= 1
 
     def get(self, key):
         """
@@ -122,6 +148,20 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        curr_strg = self.storage ## current storage
+        self.capacity = new_capacity ## new capacity replaces old
+        self.storage = [None] * self.capacity ## self.storage is now using the new capacity
+
+        curr = None
+        orig_count = self.item_count
+
+        for item in curr_strg:
+            curr = item
+            while curr != None:
+                self.put(curr.key, curr.value)
+                curr = curr.next
+        self.item_count = orig_count
+
 
 
 
