@@ -1,4 +1,7 @@
 # Your code here
+import random
+import math
+cache = {}
 
 
 def slowfun_too_slow(x, y):
@@ -15,6 +18,12 @@ def slowfun(x, y):
     output, but completes quickly instead of taking ages to run.
     """
     # Your code here
+    nums = (x, y)
+
+    if nums != cache:
+        cache[nums] = slowfun_too_slow(x,y)
+    else:
+        return cache[nums]
 
 
 
