@@ -96,20 +96,35 @@ class HashTable:
         ## Check the current entry
         ## Make sure the keys are different
         # # Your code here
-        index = self.hash_index(key)
         # self.storage[index] = value
         # return
+        index = self.hash_index(key)
         curr = self.storage[index] ## current
-
-        while curr != None and curr.key != key:
-            curr = curr.next
-        if curr != None:
-            print('warning, collision!')
-        else:
-            new = HashTableEntry(key, value)
-            new.next = self.storage[index]
-            self.storage[index] = new.next
+        if curr is None:
+            self.storage[index] = HashTableEntry(key, value)
             self.item_count += 1 
+            return
+        else:
+            curr = self.storage[index] #head
+            while curr.next is not None: # This will take us to the end of the list 
+                if curr.key is key: # since curr.key and key are the same you will just need to ovveride the value
+                    curr.value = value # the current value will now be replaced by the new value
+                    return
+                curr = curr.next
+            if curr.key is key:
+                curr.value = value
+            else:
+                curr.next = HashTableEntry(key, value)
+                self.item_count += 1 
+        # while curr != None and curr.key != key:
+        #     curr = curr.next
+        # if curr != None:
+        #     print('warning, collision!')
+        # else:
+        #     new = HashTableEntry(key, value)
+        #     new.next = self.storage[index]
+        #     self.storage[index] = new.next
+        #     self.item_count += 1 
 
 
     def delete(self, key):
@@ -122,11 +137,26 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        if self.storage[index] == None:
-            print('No key!')
+        curr = self.storage[index]
+        prev = None
+        while curr is not None and curr.key != key:
+            prev = curr
+            curr = curr.next
+        if curr is None:
+            return None
         else:
-            self.storage[index] = None
             self.item_count -= 1
+            result = curr.value
+            if prev is None:
+                self.storage[index] = curr.next
+            else:
+                prev.next = prev.next.next
+            return result
+        # if self.storage[index] == None:
+        #     print('No key!')
+        # else:
+        #     self.storage[index] = None
+        #     self.item_count -= 1
 
     def get(self, key):
         """
@@ -138,7 +168,13 @@ class HashTable:
         """
         # Your code here
         index = self.hash_index(key)
-        return self.storage[index]
+        curr = self.storage[index]
+        while curr is not None and curr.key != key:
+            curr = curr.next
+        if curr is None:
+            return None
+        else:
+            return curr.value
 
     def resize(self, new_capacity):
         """
