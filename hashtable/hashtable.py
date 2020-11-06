@@ -22,8 +22,9 @@ class HashTable:
 
     def __init__(self, capacity):
         # Your code here
-
-
+        self.capacity = max(capacity, MIN_CAPACITY)
+        self.storage = [None] * self.capacity
+        self.item_count = 0
     def get_num_slots(self):
         """
         Return the length of the list you're using to hold the hash
@@ -35,7 +36,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        return len(self.storage)
 
     def get_load_factor(self):
         """
@@ -44,8 +45,7 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
-
+        return self.item_count / self.capacity
     def fnv1(self, key):
         """
         FNV-1 Hash, 64-bit
@@ -55,6 +55,15 @@ class HashTable:
 
         # Your code here
 
+        prime_value = 14695981039346656037
+        hashed = prime_value
+        bytes_to_hash = key.encode()
+
+        for byte in bytes_to_hash:
+            hashed = hashed * prime_value
+            hashed = hashed ^ byte
+        return hashed
+
 
     def djb2(self, key):
         """
@@ -63,7 +72,12 @@ class HashTable:
         Implement this, and/or FNV-1.
         """
         # Your code here
-
+        str_key = str(key).encode()
+        hash_value = 5381
+        for b in str_key:
+            hash_value = ((hash_value << 5) + hash_value) + b
+            hash_value &= 0xffffffff
+        return hash_value
 
     def hash_index(self, key):
         """
@@ -76,12 +90,41 @@ class HashTable:
     def put(self, key, value):
         """
         Store the value with the given key.
-
         Hash collisions should be handled with Linked List Chaining.
-
         Implement this.
         """
-        # Your code here
+        ## Check the current entry
+        ## Make sure the keys are different
+        # # Your code here
+        # self.storage[index] = value
+        # return
+        index = self.hash_index(key)
+        curr = self.storage[index] ## current
+        if curr is None:
+            self.storage[index] = HashTableEntry(key, value)
+            self.item_count += 1 
+            return
+        else:
+            curr = self.storage[index] #head
+            while curr.next is not None: # This will take us to the end of the list 
+                if curr.key is key: # since curr.key and key are the same you will just need to ovveride the value
+                    curr.value = value # the current value will now be replaced by the new value
+                    return
+                curr = curr.next
+            if curr.key is key:
+                curr.value = value
+            else:
+                curr.next = HashTableEntry(key, value)
+                self.item_count += 1 
+        # while curr != None and curr.key != key:
+        #     curr = curr.next
+        # if curr != None:
+        #     print('warning, collision!')
+        # else:
+        #     new = HashTableEntry(key, value)
+        #     new.next = self.storage[index]
+        #     self.storage[index] = new.next
+        #     self.item_count += 1 
 
 
     def delete(self, key):
@@ -93,7 +136,27 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        index = self.hash_index(key)
+        curr = self.storage[index]
+        prev = None
+        while curr is not None and curr.key != key:
+            prev = curr
+            curr = curr.next
+        if curr is None:
+            return None
+        else:
+            self.item_count -= 1
+            result = curr.value
+            if prev is None:
+                self.storage[index] = curr.next
+            else:
+                prev.next = prev.next.next
+            return result
+        # if self.storage[index] == None:
+        #     print('No key!')
+        # else:
+        #     self.storage[index] = None
+        #     self.item_count -= 1
 
     def get(self, key):
         """
@@ -104,7 +167,14 @@ class HashTable:
         Implement this.
         """
         # Your code here
-
+        index = self.hash_index(key)
+        curr = self.storage[index]
+        while curr is not None and curr.key != key:
+            curr = curr.next
+        if curr is None:
+            return None
+        else:
+            return curr.value
 
     def resize(self, new_capacity):
         """
@@ -114,6 +184,20 @@ class HashTable:
         Implement this.
         """
         # Your code here
+        curr_strg = self.storage ## current storage
+        self.capacity = new_capacity ## new capacity replaces old
+        self.storage = [None] * self.capacity ## self.storage is now using the new capacity
+
+        curr = None
+        orig_count = self.item_count
+
+        for item in curr_strg:
+            curr = item
+            while curr != None:
+                self.put(curr.key, curr.value)
+                curr = curr.next
+        self.item_count = orig_count
+
 
 
 
